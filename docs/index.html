@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Compare API costs for Gemini, GPT-4, Claude, Llama, Mistral, DeepSeek, and Qwen models. Real-time calculator with batch & caching optimizations.">
+    <meta name="description" content="Compare API costs across Gemini 3.x, 2.5, 2.0, 1.5, and Claude Sonnet models. Real-time calculator with batch & caching optimizations.">
     <title>Gemini API Cost Calculator</title>
     <style>
         :root {
@@ -72,12 +72,6 @@
             border-radius: 12px;
             padding: 1.5rem;
             border: 1px solid var(--color-border);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover, section.card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         }
 
         .card h3, section.card h3 {
@@ -95,6 +89,20 @@
             color: var(--color-text-secondary);
             margin-bottom: 0.5rem;
             font-weight: 500;
+        }
+
+        fieldset {
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        legend {
+            color: var(--color-accent-purple);
+            font-weight: 600;
+            padding: 0 0.5rem;
+            font-size: 0.95rem;
         }
 
         input[type="number"],
@@ -270,7 +278,7 @@
             height: 40px;
             background: var(--color-bg-surface);
             border-radius: 8px;
-            overflow: hidden;
+            overflow: visible;
             position: relative;
         }
 
@@ -281,6 +289,8 @@
             padding: 0 1rem;
             font-weight: 600;
             transition: width 0.5s ease;
+            white-space: nowrap;
+            min-width: fit-content;
         }
 
         .bar-fill.teal { background: #14b8a6; }
@@ -294,6 +304,9 @@
         .bar-fill.yellow { background: #facc15; }
         .bar-fill.lime { background: #84cc16; }
         .bar-fill.green { background: #22c55e; }
+        .bar-fill.amber,
+        .bar-fill.yellow,
+        .bar-fill.lime { color: var(--color-bg-base); }
 
         .optimization-tips {
             background: var(--color-bg-elevated);
@@ -366,7 +379,6 @@
         </header>
 
         <main>
-            <h2>API Cost Comparison Calculator</h2>
             <div class="dashboard-grid">
                 <section class="card">
                     <h3>📊 Usage Parameters</h3>
@@ -494,7 +506,7 @@
                 </section>
             </div>
 
-            <div class="results-grid" id="resultsGrid"></div>
+            <div class="results-grid" id="resultsGrid" aria-live="polite" aria-atomic="true"></div>
 
             <div class="comparison-section">
                 <h2>📈 Cost Comparison Visualization</h2>
@@ -639,6 +651,7 @@
 
         cachingEl.addEventListener('change', () => {
             cacheDurationEl.disabled = cachingEl.value === 'false';
+            calculate();
         });
 
         requestsPerDayEl.addEventListener('input', () => {
@@ -664,7 +677,7 @@
                 gemini31FlashLite: 'cyan',
                 gemini25Pro: 'indigo',
                 gemini25Flash: 'blue',
-                gemini25FlashLite: 'teal',
+                gemini25FlashLite: 'green',
                 gemini20Flash: 'green',
                 gemini20FlashLite: 'lime',
                 gemini15Pro: 'amber',
@@ -697,12 +710,14 @@
                 storageCost = (inputTokens / 1000000) * model.cacheStore * cacheDuration;
             }
 
+            const batchMultiplier = batchMode ? 0.5 : 1;
+
             return {
                 perRequestCost,
                 totalCost: totalCost + storageCost,
                 storageCost,
-                inputCost,
-                outputCost
+                inputCostTotal: inputCost * batchMultiplier * totalRequests,
+                outputCostTotal: outputCost * batchMultiplier * totalRequests
             };
         }
 
@@ -717,10 +732,10 @@
         }
 
         function calculate() {
-            const inputTokens = parseInt(inputTokensEl.value) || 100;
-            const outputTokens = parseInt(outputTokensEl.value) || 800;
-            const requestsPerDay = parseInt(requestsPerDayEl.value) || 20;
-            const days = parseInt(daysEl.value) || 30;
+            const inputTokens = Math.max(0, parseInt(inputTokensEl.value) || 100);
+            const outputTokens = Math.max(0, parseInt(outputTokensEl.value) || 800);
+            const requestsPerDay = Math.max(1, parseInt(requestsPerDayEl.value) || 20);
+            const days = Math.max(1, parseInt(daysEl.value) || 30);
             const batchMode = batchModeEl.value === 'true';
             const caching = cachingEl.value === 'true';
             const cacheDuration = parseInt(cacheDurationEl.value) || 1;
@@ -764,11 +779,11 @@
                     <div class="cost-breakdown">
                         <div class="cost-row">
                             <span>Input tokens</span>
-                            <span>${formatCost(cost.inputCost * totalRequests)}</span>
+                            <span>${formatCost(cost.inputCostTotal)}</span>
                         </div>
                         <div class="cost-row">
                             <span>Output tokens</span>
-                            <span>${formatCost(cost.outputCost * totalRequests)}</span>
+                            <span>${formatCost(cost.outputCostTotal)}</span>
                         </div>
                         ${cost.storageCost > 0 ? `
                         <div class="cost-row">
