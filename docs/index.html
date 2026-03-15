@@ -165,6 +165,35 @@
             font-size: 1.1rem;
         }
 
+        .results-header {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .results-header h2 {
+            color: var(--color-accent-teal);
+            font-size: 1.4rem;
+        }
+
+        .btn-export {
+            background: var(--color-accent-teal);
+            color: var(--color-bg-base);
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-export:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .results-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -231,6 +260,23 @@
             padding: 1rem;
             border-radius: 8px;
             margin-top: 1rem;
+        }
+
+        .model-alert {
+            margin-top: 0.75rem;
+            color: #fda4af;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .model-advice {
+            margin-top: 0.75rem;
+            color: var(--color-accent-teal);
+            font-size: 0.9rem;
+            border: 1px dashed var(--color-accent-teal);
+            border-radius: 8px;
+            padding: 0.5rem 0.65rem;
+            background: rgba(56, 189, 248, 0.08);
         }
 
         .cost-row {
@@ -368,6 +414,10 @@
             .cost-display {
                 font-size: 2rem;
             }
+
+            .results-header {
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
@@ -375,7 +425,7 @@
     <div class="container">
         <header>
             <h1>⚡ Gemini API Cost Calculator</h1>
-            <p class="subtitle">Real-time cost modeling for March 2026 pricing - Compare models instantly</p>
+            <p class="subtitle">Real-time cost modeling for March 2026 pricing with conversation, tiering, and optimization analysis</p>
         </header>
 
         <main>
@@ -383,22 +433,37 @@
                 <section class="card">
                     <h3>📊 Usage Parameters</h3>
                     <div class="input-group">
-                        <label for="inputTokens">Input Tokens per Request</label>
-                        <input type="number" id="inputTokens" value="100" min="1" max="1000000">
+                        <label for="inputTokens">Initial Input Tokens (turn 1)</label>
+                        <input type="number" id="inputTokens" value="1000" min="1" max="1000000">
                     </div>
                     <div class="input-group">
-                        <label for="outputTokens">Output Tokens per Request</label>
-                        <input type="number" id="outputTokens" value="800" min="1" max="1000000">
+                        <label for="tokenGrowth">Input Growth per Turn</label>
+                        <input type="number" id="tokenGrowth" value="200" min="0" max="1000000">
+                    </div>
+                    <div class="input-group">
+                        <label for="turns">Conversation Turns per Request</label>
+                        <div class="slider-container">
+                            <input type="range" id="turns" min="1" max="50" value="5"
+                                   aria-label="Conversation turns"
+                                   aria-valuemin="1"
+                                   aria-valuemax="50"
+                                   aria-valuenow="5">
+                            <div class="value-display" id="turnsDisplay">5 turns</div>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="outputTokens">Output Tokens per Turn</label>
+                        <input type="number" id="outputTokens" value="500" min="1" max="1000000">
                     </div>
                     <div class="input-group">
                         <label for="requestsPerDay">Requests per Day</label>
                         <div class="slider-container">
-                            <input type="range" id="requestsPerDay" min="1" max="1000" value="20"
+                            <input type="range" id="requestsPerDay" min="1" max="5000" value="100"
                                    aria-label="Requests per day"
                                    aria-valuemin="1"
-                                   aria-valuemax="1000"
-                                   aria-valuenow="20">
-                            <div class="value-display" id="requestsDisplay">20 requests/day</div>
+                                   aria-valuemax="5000"
+                                   aria-valuenow="100">
+                            <div class="value-display" id="requestsDisplay">100 requests/day</div>
                         </div>
                     </div>
                     <div class="input-group">
@@ -416,20 +481,24 @@
 
                 <section class="card">
                     <h3>🤖 Model Selection</h3>
+                    <div style="display:flex;gap:.75rem;margin-bottom:.75rem;">
+                        <button type="button" onclick="document.querySelectorAll('input[name=model]').forEach(c=>{c.checked=true});calculate()" style="font-size:.72rem;padding:2px 10px;background:transparent;border:1px solid var(--color-border);border-radius:4px;color:var(--color-text-secondary);cursor:pointer;">Select all</button>
+                        <button type="button" onclick="document.querySelectorAll('input[name=model]').forEach(c=>{c.checked=false});calculate()" style="font-size:.72rem;padding:2px 10px;background:transparent;border:1px solid var(--color-border);border-radius:4px;color:var(--color-text-secondary);cursor:pointer;">Clear</button>
+                    </div>
                     <div style="max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
                         <fieldset>
                             <legend>Gemini 3.x (Latest)</legend>
                             <label style="display: flex; align-items: center; margin-bottom: 0.5rem; cursor: pointer;">
                                 <input type="checkbox" name="model" value="gemini31Pro" style="margin-right: 0.5rem;">
-                                <span>Gemini 3.1 Pro Preview ($2/$12)</span>
+                                <span>Gemini 3.1 Pro Preview ($2/$12) <em style="font-size:.7rem;color:#fb923c;font-style:normal;">Est.</em></span>
                             </label>
                             <label style="display: flex; align-items: center; margin-bottom: 0.5rem; cursor: pointer;">
                                 <input type="checkbox" name="model" value="gemini3Flash" style="margin-right: 0.5rem;">
-                                <span>Gemini 3 Flash Preview ($0.50/$3)</span>
+                                <span>Gemini 3 Flash Preview ($0.50/$3) <em style="font-size:.7rem;color:#fb923c;font-style:normal;">Est.</em></span>
                             </label>
                             <label style="display: flex; align-items: center; margin-bottom: 0.5rem; cursor: pointer;">
                                 <input type="checkbox" name="model" value="gemini31FlashLite" checked style="margin-right: 0.5rem;">
-                                <span>Gemini 3.1 Flash-Lite Preview ($0.25/$1.50)</span>
+                                <span>Gemini 3.1 Flash-Lite Preview ($0.25/$1.50) <em style="font-size:.7rem;color:#fb923c;font-style:normal;">Est.</em></span>
                             </label>
                         </fieldset>
 
@@ -496,7 +565,7 @@
                         <label for="caching">Context Caching</label>
                         <select id="caching">
                             <option value="false">Disabled</option>
-                            <option value="true">Enabled (90% input discount)</option>
+                            <option value="true">Enabled (up to 90% input discount — varies by provider)</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -506,11 +575,16 @@
                 </section>
             </div>
 
+            <div class="results-header">
+                <h2 id="projectionTitle">💰 Cost Projections (30 Days)</h2>
+                <button id="exportCsvBtn" class="btn-export" type="button" disabled>Download CSV</button>
+            </div>
+
             <div class="results-grid" id="resultsGrid" aria-live="polite" aria-atomic="true"></div>
 
             <div class="comparison-section">
                 <h2>📈 Cost Comparison Visualization</h2>
-                <p style="color: var(--color-text-secondary); margin-bottom: 1rem;">Relative cost per request compared to baseline</p>
+                <p style="color: var(--color-text-secondary); margin-bottom: 1rem;">Relative cost per conversation compared to baseline</p>
                 <div class="comparison-bars" id="comparisonBars"></div>
             </div>
 
@@ -542,10 +616,14 @@
                 name: 'Gemini 3.1 Pro Preview',
                 input: 2.00,
                 output: 12.00,
+                inputHigh: 4.00,
+                outputHigh: 18.00,
+                threshold: 200000,
                 cacheRead: 0.20,
                 cacheStore: 4.50,
                 family: 'Gemini 3.x',
-                context: '1M tokens'
+                context: '1M tokens',
+                limitRPD: 2000
             },
             gemini3Flash: {
                 name: 'Gemini 3 Flash Preview',
@@ -554,7 +632,8 @@
                 cacheRead: 0.05,
                 cacheStore: 1.00,
                 family: 'Gemini 3.x',
-                context: '1M tokens'
+                context: '1M tokens',
+                limitRPD: 5000
             },
             gemini31FlashLite: {
                 name: 'Gemini 3.1 Flash-Lite Preview',
@@ -563,16 +642,21 @@
                 cacheRead: 0.025,
                 cacheStore: 1.00,
                 family: 'Gemini 3.x',
-                context: '1M tokens'
+                context: '1M tokens',
+                limitRPD: 10000
             },
             gemini25Pro: {
                 name: 'Gemini 2.5 Pro',
                 input: 1.25,
                 output: 10.00,
+                inputHigh: 2.50,
+                outputHigh: 15.00,
+                threshold: 200000,
                 cacheRead: 0.125,
                 cacheStore: 4.50,
                 family: 'Gemini 2.5',
-                context: '1M tokens'
+                context: '1M tokens',
+                limitRPD: 1500
             },
             gemini25Flash: {
                 name: 'Gemini 2.5 Flash',
@@ -581,7 +665,8 @@
                 cacheRead: 0.03,
                 cacheStore: 1.00,
                 family: 'Gemini 2.5',
-                context: '1M tokens'
+                context: '1M tokens',
+                limitRPD: 5000
             },
             gemini25FlashLite: {
                 name: 'Gemini 2.5 Flash-Lite',
@@ -590,7 +675,8 @@
                 cacheRead: 0.01,
                 cacheStore: 1.00,
                 family: 'Gemini 2.5',
-                context: '1M tokens'
+                context: '1M tokens',
+                limitRPD: 10000
             },
             gemini20Flash: {
                 name: 'Gemini 2.0 Flash',
@@ -599,7 +685,8 @@
                 cacheRead: 0.025,
                 cacheStore: 1.00,
                 family: 'Gemini 2.0',
-                context: '1M tokens'
+                context: '1M tokens',
+                limitRPD: 3000
             },
             gemini20FlashLite: {
                 name: 'Gemini 2.0 Flash-Lite',
@@ -608,7 +695,8 @@
                 cacheRead: 0.019,
                 cacheStore: null,
                 family: 'Gemini 2.0',
-                context: '1M tokens'
+                context: '1M tokens',
+                limitRPD: 3000
             },
             gemini15Pro: {
                 name: 'Gemini 1.5 Pro',
@@ -617,7 +705,8 @@
                 cacheRead: 0.35,
                 cacheStore: null,
                 family: 'Gemini 1.5',
-                context: '2M tokens'
+                context: '2M tokens',
+                limitRPD: 500
             },
             gemini15Flash: {
                 name: 'Gemini 1.5 Flash',
@@ -626,20 +715,24 @@
                 cacheRead: 0.0075,
                 cacheStore: null,
                 family: 'Gemini 1.5',
-                context: '1M tokens'
+                context: '1M tokens',
+                limitRPD: 1500
             },
             claudeSonnet: {
                 name: 'Claude Sonnet 4.6',
                 input: 3.00,
                 output: 15.00,
-                cacheRead: 0.30,
+                cacheRead: null,
                 cacheStore: null,
                 family: 'Anthropic',
-                context: '1M tokens'
+                context: '1M tokens',
+                limitRPD: 1000
             }
         };
 
         const inputTokensEl = document.getElementById('inputTokens');
+        const tokenGrowthEl = document.getElementById('tokenGrowth');
+        const turnsEl = document.getElementById('turns');
         const outputTokensEl = document.getElementById('outputTokens');
         const requestsPerDayEl = document.getElementById('requestsPerDay');
         const daysEl = document.getElementById('days');
@@ -648,6 +741,12 @@
         const cacheDurationEl = document.getElementById('cacheDuration');
         const requestsDisplayEl = document.getElementById('requestsDisplay');
         const daysDisplayEl = document.getElementById('daysDisplay');
+        const turnsDisplayEl = document.getElementById('turnsDisplay');
+        const projectionTitleEl = document.getElementById('projectionTitle');
+        const exportCsvBtnEl = document.getElementById('exportCsvBtn');
+
+        let lastResults = [];
+        let lastScenario = null;
 
         cachingEl.addEventListener('change', () => {
             cacheDurationEl.disabled = cachingEl.value === 'false';
@@ -666,7 +765,13 @@
             calculate();
         });
 
-        [inputTokensEl, outputTokensEl, batchModeEl, cachingEl, cacheDurationEl].forEach(el => {
+        turnsEl.addEventListener('input', () => {
+            turnsDisplayEl.textContent = `${turnsEl.value} turns`;
+            turnsEl.setAttribute('aria-valuenow', turnsEl.value);
+            calculate();
+        });
+
+        [inputTokensEl, tokenGrowthEl, outputTokensEl, batchModeEl, cachingEl, cacheDurationEl].forEach(el => {
             el.addEventListener('input', calculate);
         });
 
@@ -677,7 +782,7 @@
                 gemini31FlashLite: 'cyan',
                 gemini25Pro: 'indigo',
                 gemini25Flash: 'blue',
-                gemini25FlashLite: 'green',
+                gemini25FlashLite: 'lime',
                 gemini20Flash: 'green',
                 gemini20FlashLite: 'lime',
                 gemini15Pro: 'amber',
@@ -687,64 +792,175 @@
             return colorMap[modelKey] || 'teal';
         }
 
-        function calculateCost(model, params) {
-            const { inputTokens, outputTokens, totalRequests, batchMode, caching, cacheDuration } = params;
+        function calculateConversationInputTokens(baseTokens, tokenGrowth, turns) {
+            return (turns / 2) * ((2 * baseTokens) + ((turns - 1) * tokenGrowth));
+        }
 
-            let inputCost = (inputTokens / 1000000) * model.input;
-            let outputCost = (outputTokens / 1000000) * model.output;
-
-            if (caching) {
-                inputCost = (inputTokens / 1000000) * model.cacheRead;
+        function formatTokenCount(tokens) {
+            if (tokens >= 1000000) {
+                return `${(tokens / 1000000).toFixed(1)}M`;
             }
+            if (tokens >= 1000) {
+                return `${(tokens / 1000).toFixed(0)}k`;
+            }
+            return String(tokens);
+        }
 
-            let perRequestCost = inputCost + outputCost;
+        function calculateCost(model, params) {
+            const {
+                baseInputTokens,
+                inputTokensPerConversation,
+                outputTokensPerConversation,
+                requestsPerDay,
+                days,
+                totalRequests,
+                batchMode,
+                caching,
+                cacheDuration
+            } = params;
+
+            const isTiered = Number.isFinite(model.threshold) && inputTokensPerConversation > model.threshold;
+            const inputRate = isTiered ? (model.inputHigh ?? model.input) : model.input;
+            const outputRate = isTiered ? (model.outputHigh ?? model.output) : model.output;
+
+            const supportsCacheRead = Number.isFinite(model.cacheRead);
+            const appliedCacheRead = supportsCacheRead ? model.cacheRead : inputRate;
+            const cacheUnavailable = caching && !supportsCacheRead;
+
+            let perConversationInputCost = (inputTokensPerConversation / 1000000) * (caching ? appliedCacheRead : inputRate);
+            let perConversationOutputCost = (outputTokensPerConversation / 1000000) * outputRate;
 
             if (batchMode) {
-                perRequestCost *= 0.5;
+                perConversationInputCost *= 0.5;
+                perConversationOutputCost *= 0.5;
             }
 
-            let totalCost = perRequestCost * totalRequests;
+            const inputCostTotal = perConversationInputCost * totalRequests;
+            const outputCostTotal = perConversationOutputCost * totalRequests;
 
             let storageCost = 0;
-            if (caching && model.cacheStore) {
-                storageCost = (inputTokens / 1000000) * model.cacheStore * cacheDuration;
+            let breakEvenReusesPerHour = null;
+            if (caching && supportsCacheRead && Number.isFinite(model.cacheStore) && model.cacheStore > 0) {
+                storageCost = (baseInputTokens / 1000000) * model.cacheStore * cacheDuration * days;
+                const hourlyStorageCost = (baseInputTokens / 1000000) * model.cacheStore;
+                const perReuseSavings = (baseInputTokens / 1000000) * Math.max(0, inputRate - model.cacheRead) * (batchMode ? 0.5 : 1);
+                if (perReuseSavings > 0) {
+                    breakEvenReusesPerHour = Math.ceil(hourlyStorageCost / perReuseSavings);
+                }
             }
 
-            const batchMultiplier = batchMode ? 0.5 : 1;
+            const perRequestCost = perConversationInputCost + perConversationOutputCost;
+            const totalCost = inputCostTotal + outputCostTotal + storageCost;
+
+            const rateLimitWarning = Number.isFinite(model.limitRPD) && requestsPerDay > model.limitRPD;
 
             return {
                 perRequestCost,
-                totalCost: totalCost + storageCost,
+                totalCost,
                 storageCost,
-                inputCostTotal: inputCost * batchMultiplier * totalRequests,
-                outputCostTotal: outputCost * batchMultiplier * totalRequests
+                inputCostTotal,
+                outputCostTotal,
+                isTiered,
+                rateLimitWarning,
+                breakEvenReusesPerHour,
+                cacheUnavailable
             };
         }
 
         function formatCost(cost) {
             if (cost < 0.01) {
                 return `$${cost.toFixed(6)}`;
-            } else if (cost < 1) {
-                return `$${cost.toFixed(4)}`;
-            } else {
-                return `$${cost.toFixed(2)}`;
             }
+            if (cost < 1) {
+                return `$${cost.toFixed(4)}`;
+            }
+            return `$${cost.toFixed(2)}`;
         }
 
+        function escapeCsvCell(value) {
+            const raw = String(value ?? '');
+            if (/[",\n]/.test(raw)) {
+                return `"${raw.replace(/"/g, '""')}"`;
+            }
+            return raw;
+        }
+
+        function exportCSV() {
+            if (!lastResults.length || !lastScenario) {
+                return;
+            }
+
+            const rows = [
+                ['Generated At', new Date().toISOString()],
+                ['Days', lastScenario.days],
+                ['Requests Per Day', lastScenario.requestsPerDay],
+                ['Total Requests', lastScenario.totalRequests],
+                ['Base Input Tokens (Turn 1)', lastScenario.baseInputTokens],
+                ['Input Growth Per Turn', lastScenario.tokenGrowth],
+                ['Turns Per Request', lastScenario.turns],
+                ['Input Tokens Per Conversation', Math.round(lastScenario.inputTokensPerConversation)],
+                ['Output Tokens Per Conversation', Math.round(lastScenario.outputTokensPerConversation)],
+                ['Batch Mode', lastScenario.batchMode ? 'Yes' : 'No'],
+                ['Context Caching', lastScenario.caching ? 'Yes' : 'No'],
+                ['Cache Duration (hours)', lastScenario.cacheDuration],
+                [],
+                ['Model', 'Per Conversation', 'Total Cost', 'Input Total', 'Output Total', 'Cache Storage', 'Tiered Pricing', 'Rate Limit Warning', 'Cache Break-even (reuse/hour)']
+            ];
+
+            lastResults.forEach(result => {
+                rows.push([
+                    result.name,
+                    result.perRequestCost.toFixed(6),
+                    result.totalCost.toFixed(6),
+                    result.inputCostTotal.toFixed(6),
+                    result.outputCostTotal.toFixed(6),
+                    result.storageCost.toFixed(6),
+                    result.isTiered ? 'Yes' : 'No',
+                    result.rateLimitWarning ? 'Yes' : 'No',
+                    result.breakEvenReusesPerHour ?? ''
+                ]);
+            });
+
+            const csv = rows.map(row => row.map(escapeCsvCell).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const fileDate = new Date().toISOString().slice(0, 10);
+            a.href = url;
+            a.download = `gemini-api-cost-projection-${fileDate}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        exportCsvBtnEl.addEventListener('click', exportCSV);
+
         function calculate() {
-            const inputTokens = Math.max(0, parseInt(inputTokensEl.value) || 100);
-            const outputTokens = Math.max(0, parseInt(outputTokensEl.value) || 800);
-            const requestsPerDay = Math.max(1, parseInt(requestsPerDayEl.value) || 20);
-            const days = Math.max(1, parseInt(daysEl.value) || 30);
+            const baseInputTokens = Math.max(0, parseInt(inputTokensEl.value, 10) || 1000);
+            const tokenGrowth = Math.max(0, parseInt(tokenGrowthEl.value, 10) || 200);
+            const turns = Math.max(1, parseInt(turnsEl.value, 10) || 5);
+            const outputTokensPerTurn = Math.max(0, parseInt(outputTokensEl.value, 10) || 500);
+            const requestsPerDay = Math.max(1, parseInt(requestsPerDayEl.value, 10) || 100);
+            const days = Math.max(1, parseInt(daysEl.value, 10) || 30);
             const batchMode = batchModeEl.value === 'true';
             const caching = cachingEl.value === 'true';
-            const cacheDuration = parseInt(cacheDurationEl.value) || 1;
+            const cacheDuration = Math.max(0, parseInt(cacheDurationEl.value, 10) || 1);
 
+            projectionTitleEl.textContent = `💰 Cost Projections (${days} Days)`;
+
+            const inputTokensPerConversation = calculateConversationInputTokens(baseInputTokens, tokenGrowth, turns);
+            const outputTokensPerConversation = turns * outputTokensPerTurn;
             const totalRequests = requestsPerDay * days;
 
             const params = {
-                inputTokens,
-                outputTokens,
+                baseInputTokens,
+                tokenGrowth,
+                turns,
+                inputTokensPerConversation,
+                outputTokensPerConversation,
+                requestsPerDay,
+                days,
                 totalRequests,
                 batchMode,
                 caching,
@@ -774,7 +990,7 @@
                     </div>
                     <div class="cost-display">${formatCost(cost.totalCost)}</div>
                     <div style="color: var(--color-text-muted); margin-bottom: 1rem;">
-                        ${formatCost(cost.perRequestCost)} per request · ${model.context}
+                        ${formatCost(cost.perRequestCost)} per conversation · ${model.context}
                     </div>
                     <div class="cost-breakdown">
                         <div class="cost-row">
@@ -796,6 +1012,10 @@
                             <span>${formatCost(cost.totalCost)}</span>
                         </div>
                     </div>
+                    ${cost.isTiered ? `<div class="model-alert">Tiered pricing active above ${formatTokenCount(model.threshold)} input tokens per conversation.</div>` : ''}
+                    ${cost.rateLimitWarning ? `<div class="model-alert">Rate limit warning: ${requestsPerDay.toLocaleString()} RPD exceeds estimated ${model.limitRPD.toLocaleString()} RPD.</div>` : ''}
+                    ${cost.cacheUnavailable ? '<div class="model-alert">Caching is enabled globally, but this model has no cache-read pricing configured.</div>' : ''}
+                    ${cost.breakEvenReusesPerHour ? `<div class="model-advice">Caching break-even: reuse cached context at least ${cost.breakEvenReusesPerHour.toLocaleString()}x per hour.</div>` : ''}
                 </div>
                 `;
             });
@@ -803,6 +1023,9 @@
             document.getElementById('resultsGrid').innerHTML = resultsHTML || '<p style="color: var(--color-text-muted); text-align: center; padding: 2rem;">Select at least one model to compare costs.</p>';
 
             if (Object.keys(costs).length === 0) {
+                lastResults = [];
+                lastScenario = null;
+                exportCsvBtnEl.disabled = true;
                 document.getElementById('comparisonBars').innerHTML = '<p style="color: var(--color-text-muted); text-align: center;">Select models to see comparison.</p>';
                 return;
             }
@@ -821,8 +1044,8 @@
             let comparisonHTML = '';
 
             costArray.forEach(item => {
-                const widthPercent = (item.cost / maxCost) * 100;
-                const multiplier = (item.cost / minCost).toFixed(1);
+                const widthPercent = maxCost === 0 ? 0 : (item.cost / maxCost) * 100;
+                const multiplier = minCost === 0 ? (item.cost === 0 ? '1.0' : '∞') : (item.cost / minCost).toFixed(1);
 
                 comparisonHTML += `
                 <div class="bar-item">
@@ -840,6 +1063,17 @@
             });
 
             document.getElementById('comparisonBars').innerHTML = comparisonHTML;
+
+            lastResults = Object.keys(costs).map(key => ({
+                key,
+                name: pricing[key].name,
+                ...costs[key]
+            }));
+
+            lastScenario = {
+                ...params
+            };
+            exportCsvBtnEl.disabled = false;
         }
 
         document.querySelectorAll('input[name="model"]').forEach(checkbox => {
