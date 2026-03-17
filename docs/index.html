@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Compare API costs across Gemini 3.x, 2.5, 2.0, 1.5, and Claude Sonnet models. Real-time calculator with batch & caching optimizations.">
-    <title>Gemini API Cost Calculator</title>
+    <meta name="description" content="Compare API costs across Gemini, Claude, GPT-4, Llama, Mistral, DeepSeek, and Qwen models. Real-time calculator with batch & caching optimizations.">
+    <title>AI API Cost Calculator</title>
         <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon/favicon-16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/favicon/apple-touch-icon.png" />
@@ -434,7 +434,7 @@
        onmouseout="this.style.color='rgba(255,255,255,0.4)'">&larr; DaveHomeAssist</a>
     <div class="container">
         <header>
-            <h1>⚡ Gemini API Cost Calculator</h1>
+            <h1>⚡ AI API Cost Calculator</h1>
             <p class="subtitle">Real-time cost modeling for March 2026 pricing with conversation, tiering, and optimization analysis</p>
         </header>
 
@@ -937,7 +937,7 @@
             const a = document.createElement('a');
             const fileDate = new Date().toISOString().slice(0, 10);
             a.href = url;
-            a.download = `gemini-api-cost-projection-${fileDate}.csv`;
+            a.download = `ai-api-cost-projection-${fileDate}.csv`;
             document.body.appendChild(a);
             a.click();
             a.remove();
