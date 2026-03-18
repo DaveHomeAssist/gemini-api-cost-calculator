@@ -1,4 +1,4 @@
-# Gemini API Cost Calculator
+# LLM API Cost Calculator
 
 Static cost-comparison calculator for Gemini, GPT-4, Claude, Llama, Mistral, DeepSeek, and Qwen pricing scenarios.
 

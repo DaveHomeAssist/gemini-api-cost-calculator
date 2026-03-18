@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Compare API costs across Gemini 3.x, 2.5, 2.0, 1.5, and Claude Sonnet models. Real-time calculator with batch & caching optimizations.">
-    <title>Gemini API Cost Calculator</title>
+    <meta name="description" content="Compare API costs across Gemini, Claude, and OpenAI models with real-time conversation, caching, and batch pricing analysis.">
+    <title>LLM API Cost Calculator</title>
+        <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon/favicon.svg">
         <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon/favicon-16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/favicon/apple-touch-icon.png" />
@@ -434,8 +435,8 @@
        onmouseout="this.style.color='rgba(255,255,255,0.4)'">&larr; DaveHomeAssist</a>
     <div class="container">
         <header>
-            <h1>⚡ Gemini API Cost Calculator</h1>
-            <p class="subtitle">Real-time cost modeling for March 2026 pricing with conversation, tiering, and optimization analysis</p>
+            <h1>⚡ LLM API Cost Calculator</h1>
+            <p class="subtitle">Real-time multi-provider cost modeling for March 2026 pricing with conversation, tiering, and optimization analysis</p>
         </header>
 
         <main>
@@ -621,124 +622,61 @@
     </div>
 
     <script>
-        const pricing = {
-            gemini31Pro: {
-                name: 'Gemini 3.1 Pro Preview',
-                input: 2.00,
-                output: 12.00,
-                inputHigh: 4.00,
-                outputHigh: 18.00,
-                threshold: 200000,
-                cacheRead: 0.20,
-                cacheStore: 4.50,
-                family: 'Gemini 3.x',
-                context: '1M tokens',
-                limitRPD: 2000
+        const providers = {
+            google: {
+                label: "Google",
+                groups: [
+                    { legend: "Gemini 3.x (Latest)", models: {
+                        gemini31Pro: { name: 'Gemini 3.1 Pro Preview', input: 2.00, output: 12.00, inputHigh: 4.00, outputHigh: 18.00, threshold: 200000, cacheRead: 0.20, cacheStore: 4.50, family: 'Gemini 3.x', context: '1M tokens', limitRPD: 2000 },
+                        gemini3Flash: { name: 'Gemini 3 Flash Preview', input: 0.50, output: 3.00, cacheRead: 0.05, cacheStore: 1.00, family: 'Gemini 3.x', context: '1M tokens', limitRPD: 5000 },
+                        gemini31FlashLite: { name: 'Gemini 3.1 Flash-Lite Preview', input: 0.25, output: 1.50, cacheRead: 0.025, cacheStore: 1.00, family: 'Gemini 3.x', context: '1M tokens', limitRPD: 10000 }
+                    }},
+                    { legend: "Gemini 2.5 (Production)", models: {
+                        gemini25Pro: { name: 'Gemini 2.5 Pro', input: 1.25, output: 10.00, inputHigh: 2.50, outputHigh: 15.00, threshold: 200000, cacheRead: 0.125, cacheStore: 4.50, family: 'Gemini 2.5', context: '1M tokens', limitRPD: 1500 },
+                        gemini25Flash: { name: 'Gemini 2.5 Flash', input: 0.30, output: 2.50, cacheRead: 0.03, cacheStore: 1.00, family: 'Gemini 2.5', context: '1M tokens', limitRPD: 5000 },
+                        gemini25FlashLite: { name: 'Gemini 2.5 Flash-Lite', input: 0.10, output: 0.40, cacheRead: 0.01, cacheStore: 1.00, family: 'Gemini 2.5', context: '1M tokens', limitRPD: 10000 }
+                    }},
+                    { legend: "Gemini 2.0 (Legacy)", models: {
+                        gemini20Flash: { name: 'Gemini 2.0 Flash', input: 0.10, output: 0.40, cacheRead: 0.025, cacheStore: 1.00, family: 'Gemini 2.0', context: '1M tokens', limitRPD: 3000 },
+                        gemini20FlashLite: { name: 'Gemini 2.0 Flash-Lite', input: 0.075, output: 0.30, cacheRead: 0.019, cacheStore: null, family: 'Gemini 2.0', context: '1M tokens', limitRPD: 3000 }
+                    }},
+                    { legend: "Gemini 1.5 (Legacy)", models: {
+                        gemini15Pro: { name: 'Gemini 1.5 Pro', input: 3.50, output: 10.50, cacheRead: 0.35, cacheStore: null, family: 'Gemini 1.5', context: '2M tokens', limitRPD: 500 },
+                        gemini15Flash: { name: 'Gemini 1.5 Flash', input: 0.075, output: 0.30, cacheRead: 0.0075, cacheStore: null, family: 'Gemini 1.5', context: '1M tokens', limitRPD: 1500 }
+                    }}
+                ]
             },
-            gemini3Flash: {
-                name: 'Gemini 3 Flash Preview',
-                input: 0.50,
-                output: 3.00,
-                cacheRead: 0.05,
-                cacheStore: 1.00,
-                family: 'Gemini 3.x',
-                context: '1M tokens',
-                limitRPD: 5000
+            anthropic: {
+                label: "Anthropic",
+                groups: [
+                    { legend: "Claude (Production)", models: {
+                        claudeSonnet: { name: 'Claude Sonnet 4.6', input: 3.00, output: 15.00, cacheRead: null, cacheStore: null, family: 'Anthropic', context: '1M tokens', limitRPD: 1000 }
+                    }}
+                ]
             },
-            gemini31FlashLite: {
-                name: 'Gemini 3.1 Flash-Lite Preview',
-                input: 0.25,
-                output: 1.50,
-                cacheRead: 0.025,
-                cacheStore: 1.00,
-                family: 'Gemini 3.x',
-                context: '1M tokens',
-                limitRPD: 10000
-            },
-            gemini25Pro: {
-                name: 'Gemini 2.5 Pro',
-                input: 1.25,
-                output: 10.00,
-                inputHigh: 2.50,
-                outputHigh: 15.00,
-                threshold: 200000,
-                cacheRead: 0.125,
-                cacheStore: 4.50,
-                family: 'Gemini 2.5',
-                context: '1M tokens',
-                limitRPD: 1500
-            },
-            gemini25Flash: {
-                name: 'Gemini 2.5 Flash',
-                input: 0.30,
-                output: 2.50,
-                cacheRead: 0.03,
-                cacheStore: 1.00,
-                family: 'Gemini 2.5',
-                context: '1M tokens',
-                limitRPD: 5000
-            },
-            gemini25FlashLite: {
-                name: 'Gemini 2.5 Flash-Lite',
-                input: 0.10,
-                output: 0.40,
-                cacheRead: 0.01,
-                cacheStore: 1.00,
-                family: 'Gemini 2.5',
-                context: '1M tokens',
-                limitRPD: 10000
-            },
-            gemini20Flash: {
-                name: 'Gemini 2.0 Flash',
-                input: 0.10,
-                output: 0.40,
-                cacheRead: 0.025,
-                cacheStore: 1.00,
-                family: 'Gemini 2.0',
-                context: '1M tokens',
-                limitRPD: 3000
-            },
-            gemini20FlashLite: {
-                name: 'Gemini 2.0 Flash-Lite',
-                input: 0.075,
-                output: 0.30,
-                cacheRead: 0.019,
-                cacheStore: null,
-                family: 'Gemini 2.0',
-                context: '1M tokens',
-                limitRPD: 3000
-            },
-            gemini15Pro: {
-                name: 'Gemini 1.5 Pro',
-                input: 3.50,
-                output: 10.50,
-                cacheRead: 0.35,
-                cacheStore: null,
-                family: 'Gemini 1.5',
-                context: '2M tokens',
-                limitRPD: 500
-            },
-            gemini15Flash: {
-                name: 'Gemini 1.5 Flash',
-                input: 0.075,
-                output: 0.30,
-                cacheRead: 0.0075,
-                cacheStore: null,
-                family: 'Gemini 1.5',
-                context: '1M tokens',
-                limitRPD: 1500
-            },
-            claudeSonnet: {
-                name: 'Claude Sonnet 4.6',
-                input: 3.00,
-                output: 15.00,
-                cacheRead: null,
-                cacheStore: null,
-                family: 'Anthropic',
-                context: '1M tokens',
-                limitRPD: 1000
+            openai: {
+                label: "OpenAI",
+                groups: [
+                    { legend: "GPT-4 Series", models: {
+                        gpt4o: { name: 'GPT-4o', input: 2.50, output: 10.00, cacheRead: 1.25, cacheStore: null, family: 'OpenAI', context: '128k tokens', limitRPD: 10000 },
+                        gpt4oMini: { name: 'GPT-4o Mini', input: 0.15, output: 0.60, cacheRead: 0.075, cacheStore: null, family: 'OpenAI', context: '128k tokens', limitRPD: 30000 }
+                    }},
+                    { legend: "GPT-4.1 Series", models: {
+                        gpt41: { name: 'GPT-4.1', input: 2.00, output: 8.00, cacheRead: 0.50, cacheStore: null, family: 'OpenAI', context: '1M tokens', limitRPD: 10000 },
+                        gpt41Mini: { name: 'GPT-4.1 Mini', input: 0.40, output: 1.60, cacheRead: 0.10, cacheStore: null, family: 'OpenAI', context: '1M tokens', limitRPD: 30000 },
+                        gpt41Nano: { name: 'GPT-4.1 Nano', input: 0.10, output: 0.40, cacheRead: 0.025, cacheStore: null, family: 'OpenAI', context: '1M tokens', limitRPD: 30000 }
+                    }}
+                ]
             }
         };
+
+        // Flatten for backward compatible lookup
+        const pricing = {};
+        Object.values(providers).forEach(provider =>
+            provider.groups.forEach(group =>
+                Object.assign(pricing, group.models)
+            )
+        );
 
         const inputTokensEl = document.getElementById('inputTokens');
         const tokenGrowthEl = document.getElementById('tokenGrowth');
@@ -786,20 +724,20 @@
         });
 
         function getColorClass(modelKey) {
-            const colorMap = {
-                gemini31Pro: 'purple',
-                gemini3Flash: 'teal',
-                gemini31FlashLite: 'cyan',
-                gemini25Pro: 'indigo',
-                gemini25Flash: 'blue',
-                gemini25FlashLite: 'lime',
-                gemini20Flash: 'green',
-                gemini20FlashLite: 'lime',
-                gemini15Pro: 'amber',
-                gemini15Flash: 'yellow',
-                claudeSonnet: 'orange'
+            const groupColors = {
+                google: ['blue', 'indigo', 'teal', 'lime'],
+                anthropic: ['orange'],
+                openai: ['purple', 'violet']
             };
-            return colorMap[modelKey] || 'teal';
+            for (const [providerKey, provider] of Object.entries(providers)) {
+                const colors = groupColors[providerKey] || ['gray'];
+                for (let i = 0; i < provider.groups.length; i++) {
+                    if (modelKey in provider.groups[i].models) {
+                        return colors[i % colors.length];
+                    }
+                }
+            }
+            return 'teal';
         }
 
         function calculateConversationInputTokens(baseTokens, tokenGrowth, turns) {
@@ -937,7 +875,7 @@
             const a = document.createElement('a');
             const fileDate = new Date().toISOString().slice(0, 10);
             a.href = url;
-            a.download = `gemini-api-cost-projection-${fileDate}.csv`;
+            a.download = `llm-api-cost-projection-${fileDate}.csv`;
             document.body.appendChild(a);
             a.click();
             a.remove();
