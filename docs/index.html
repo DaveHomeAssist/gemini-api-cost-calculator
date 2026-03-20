@@ -38,6 +38,25 @@
             line-height: 1.6;
         }
 
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            padding: 8px 16px;
+            z-index: 10000;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            background: var(--color-bg-elevated);
+            color: var(--color-accent-teal);
+        }
+
+        .skip-link:focus {
+            left: 10px;
+            top: 10px;
+            outline: 2px solid currentColor;
+        }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -160,6 +179,12 @@
             border-radius: 50%;
             cursor: pointer;
             border: none;
+        }
+
+        input[type="range"]::-moz-range-track {
+            height: 6px;
+            background: var(--color-bg-surface);
+            border-radius: 3px;
         }
 
         .value-display {
@@ -401,6 +426,12 @@
             outline-offset: 2px;
         }
 
+        @media (max-width: 1024px) {
+            .results-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 1rem;
@@ -423,9 +454,16 @@
                 align-items: flex-start;
             }
         }
+
+        @media (max-width: 480px) {
+            .container { padding: 12px; }
+            .results-grid { gap: 12px; }
+            h1 { font-size: 1.5rem; }
+        }
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to content</a>
     <a href="https://davehomeassist.github.io/"
        style="display:inline-flex;align-items:center;gap:.35rem;position:fixed;
               top:.65rem;left:.85rem;z-index:100;font-size:.7rem;
@@ -439,7 +477,7 @@
             <p class="subtitle">Real-time multi-provider cost modeling for March 2026 pricing with conversation, tiering, and optimization analysis</p>
         </header>
 
-        <main>
+        <main id="main-content">
             <div class="dashboard-grid">
                 <section class="card">
                     <h3>📊 Usage Parameters</h3>
@@ -586,12 +624,14 @@
                 </section>
             </div>
 
-            <div class="results-header">
-                <h2 id="projectionTitle">💰 Cost Projections (30 Days)</h2>
-                <button id="exportCsvBtn" class="btn-export" type="button" disabled>Download CSV</button>
-            </div>
+            <section aria-label="Cost comparison results">
+                <div class="results-header">
+                    <h2 id="projectionTitle">💰 Cost Projections (30 Days)</h2>
+                    <button id="exportCsvBtn" class="btn-export" type="button" disabled>Download CSV</button>
+                </div>
 
-            <div class="results-grid" id="resultsGrid" aria-live="polite" aria-atomic="true"></div>
+                <div class="results-grid" id="resultsGrid" aria-live="polite" aria-atomic="true"></div>
+            </section>
 
             <div class="comparison-section">
                 <h2>📈 Cost Comparison Visualization</h2>
