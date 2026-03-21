@@ -460,6 +460,7 @@
             .results-grid { gap: 12px; }
             h1 { font-size: 1.5rem; }
         }
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
     </style>
 </head>
 <body>
@@ -535,8 +536,9 @@
                         <button type="button" onclick="document.querySelectorAll('input[name=model]').forEach(c=>{c.checked=false});calculate()" style="font-size:.72rem;padding:2px 10px;background:transparent;border:1px solid var(--color-border);border-radius:4px;color:var(--color-text-secondary);cursor:pointer;">Clear</button>
                     </div>
                     <div style="max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
+                        <section aria-labelledby="legend-gemini-3x">
                         <fieldset>
-                            <legend>Gemini 3.x (Latest)</legend>
+                            <legend id="legend-gemini-3x">Gemini 3.x (Latest)</legend>
                             <label style="display: flex; align-items: center; margin-bottom: 0.5rem; cursor: pointer;">
                                 <input type="checkbox" name="model" value="gemini31Pro" style="margin-right: 0.5rem;">
                                 <span>Gemini 3.1 Pro Preview ($2/$12) <em style="font-size:.7rem;color:#fb923c;font-style:normal;">Est.</em></span>
@@ -550,9 +552,11 @@
                                 <span>Gemini 3.1 Flash-Lite Preview ($0.25/$1.50) <em style="font-size:.7rem;color:#fb923c;font-style:normal;">Est.</em></span>
                             </label>
                         </fieldset>
+                        </section>
 
+                        <section aria-labelledby="legend-gemini-25">
                         <fieldset>
-                            <legend>Gemini 2.5 (Production)</legend>
+                            <legend id="legend-gemini-25">Gemini 2.5 (Production)</legend>
                             <label style="display: flex; align-items: center; margin-bottom: 0.5rem; cursor: pointer;">
                                 <input type="checkbox" name="model" value="gemini25Pro" style="margin-right: 0.5rem;">
                                 <span>Gemini 2.5 Pro ($1.25/$10)</span>
@@ -566,9 +570,11 @@
                                 <span>Gemini 2.5 Flash-Lite ($0.10/$0.40)</span>
                             </label>
                         </fieldset>
+                        </section>
 
+                        <section aria-labelledby="legend-gemini-20">
                         <fieldset>
-                            <legend>Gemini 2.0 (Legacy)</legend>
+                            <legend id="legend-gemini-20">Gemini 2.0 (Legacy)</legend>
                             <label style="display: flex; align-items: center; margin-bottom: 0.5rem; cursor: pointer;">
                                 <input type="checkbox" name="model" value="gemini20Flash" style="margin-right: 0.5rem;">
                                 <span>Gemini 2.0 Flash ($0.10/$0.40)</span>
@@ -578,9 +584,11 @@
                                 <span>Gemini 2.0 Flash-Lite ($0.075/$0.30)</span>
                             </label>
                         </fieldset>
+                        </section>
 
+                        <section aria-labelledby="legend-gemini-15">
                         <fieldset>
-                            <legend>Gemini 1.5 (Legacy)</legend>
+                            <legend id="legend-gemini-15">Gemini 1.5 (Legacy)</legend>
                             <label style="display: flex; align-items: center; margin-bottom: 0.5rem; cursor: pointer;">
                                 <input type="checkbox" name="model" value="gemini15Pro" style="margin-right: 0.5rem;">
                                 <span>Gemini 1.5 Pro ($3.50/$10.50)</span>
@@ -590,14 +598,17 @@
                                 <span>Gemini 1.5 Flash ($0.075/$0.30)</span>
                             </label>
                         </fieldset>
+                        </section>
 
+                        <section aria-labelledby="legend-competitors">
                         <fieldset>
-                            <legend>Competitors</legend>
+                            <legend id="legend-competitors">Competitors</legend>
                             <label style="display: flex; align-items: center; margin-bottom: 0.5rem; cursor: pointer;">
                                 <input type="checkbox" name="model" value="claudeSonnet" checked style="margin-right: 0.5rem;">
                                 <span>Claude Sonnet 4.6 ($3/$15)</span>
                             </label>
                         </fieldset>
+                        </section>
                     </div>
                 </section>
 
@@ -633,14 +644,14 @@
                 <div class="results-grid" id="resultsGrid" aria-live="polite" aria-atomic="true"></div>
             </section>
 
-            <div class="comparison-section">
-                <h2>📈 Cost Comparison Visualization</h2>
+            <section class="comparison-section" aria-labelledby="comparison-heading">
+                <h2 id="comparison-heading">📈 Cost Comparison Visualization</h2>
                 <p style="color: var(--color-text-secondary); margin-bottom: 1rem;">Relative cost per conversation compared to baseline</p>
                 <div class="comparison-bars" id="comparisonBars"></div>
-            </div>
+            </section>
 
-            <div class="optimization-tips">
-                <h3>💡 Cost Optimization Strategies</h3>
+            <section class="optimization-tips" aria-labelledby="optimization-heading">
+                <h3 id="optimization-heading">💡 Cost Optimization Strategies</h3>
                 <div class="tip-item">
                     <div class="tip-title">🚀 Batch API <span class="savings-badge">50% OFF</span></div>
                     <p>Submit non-urgent requests via Batch API for automatic 50% discount. Perfect for overnight processing, bulk content generation, and scheduled tasks with 24-hour SLA.</p>
@@ -657,7 +668,7 @@
                     <div class="tip-title">🎯 Free Tier Strategy</div>
                     <p>Gemini free tier: 5-15 RPM, 100-1,500 RPD depending on model. Personal projects under 20 requests/day stay completely free. Upgrade to Tier 1 ($0 setup) for 150-2,000 RPM.</p>
                 </div>
-            </div>
+            </section>
         </main>
     </div>
 
