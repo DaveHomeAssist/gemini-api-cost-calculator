@@ -1,6 +1,4 @@
-> **DEPRECATED** — This file is superseded by `CLAUDE.md`. Issues, session log, and project metadata now live in CLAUDE.md. This file is retained as a historical archive only.
-
-# AGENTS.md
+# CLAUDE.md
 
 Inherits root rules from `/Users/daverobertson/Desktop/Code/AGENTS.md`.
 
@@ -19,6 +17,11 @@ Static cost comparison calculator for LLM API pricing. Compares Gemini, Claude, 
 - Single file architecture for zero dependency deployment
 - docs/ directory used as GitHub Pages root
 - Model pricing data is hardcoded; needs manual updates when providers change rates
+
+## Documentation Maintenance
+
+- **Issues**: Track in the issue tracker table below
+- **Session log**: Append to `/Users/daverobertson/Desktop/Code/95-docs-personal/today.csv` after each meaningful change
 
 ## Issue Tracker
 
