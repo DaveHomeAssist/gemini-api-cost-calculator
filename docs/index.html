@@ -679,6 +679,10 @@
                 </div>
             </section>
         </main>
+
+        <footer style="text-align:center;color:var(--color-text-muted);font-size:.75rem;margin-top:3rem;padding:1.5rem 0;border-top:1px solid var(--color-border);">
+            Pricing data last verified March 2026. Rates may change — always confirm with the provider.
+        </footer>
     </div>
 
     <script>
@@ -710,7 +714,7 @@
                 label: "Anthropic",
                 groups: [
                     { legend: "Claude (Production)", models: {
-                        claudeSonnet: { name: 'Claude Sonnet 4.6', input: 3.00, output: 15.00, cacheRead: null, cacheStore: null, family: 'Anthropic', context: '1M tokens', limitRPD: 1000 }
+                        claudeSonnet: { name: 'Claude Sonnet 4.6', input: 3.00, output: 15.00, cacheRead: 0.30, cacheStore: 3.75, family: 'Anthropic', context: '1M tokens', limitRPD: 1000 }
                     }}
                 ]
             },
@@ -945,15 +949,21 @@
         exportCsvBtnEl.addEventListener('click', exportCSV);
 
         function calculate() {
-            const baseInputTokens = Math.max(0, parseInt(inputTokensEl.value, 10) || 1000);
-            const tokenGrowth = Math.max(0, parseInt(tokenGrowthEl.value, 10) || 200);
-            const turns = Math.max(1, parseInt(turnsEl.value, 10) || 5);
-            const outputTokensPerTurn = Math.max(0, parseInt(outputTokensEl.value, 10) || 500);
-            const requestsPerDay = Math.max(1, parseInt(requestsPerDayEl.value, 10) || 100);
-            const days = Math.max(1, parseInt(daysEl.value, 10) || 30);
+            // NaN-safe int parser. `parseInt(x, 10) || fallback` treated 0 as falsy
+            // and silently replaced legitimate zero inputs with the default.
+            const int = (el, fallback) => {
+                const v = parseInt(el.value, 10);
+                return Number.isNaN(v) ? fallback : v;
+            };
+            const baseInputTokens = Math.max(0, int(inputTokensEl, 1000));
+            const tokenGrowth = Math.max(0, int(tokenGrowthEl, 200));
+            const turns = Math.max(1, int(turnsEl, 5));
+            const outputTokensPerTurn = Math.max(0, int(outputTokensEl, 500));
+            const requestsPerDay = Math.max(1, int(requestsPerDayEl, 100));
+            const days = Math.max(1, int(daysEl, 30));
             const batchMode = batchModeEl.value === 'true';
             const caching = cachingEl.value === 'true';
-            const cacheDuration = Math.max(0, parseInt(cacheDurationEl.value, 10) || 1);
+            const cacheDuration = Math.max(0, int(cacheDurationEl, 1));
 
             projectionTitleEl.textContent = `💰 Cost Projections (${days} Days)`;
 
@@ -1062,9 +1072,7 @@
                         <span>${formatCost(item.cost)} (${multiplier}×)</span>
                     </div>
                     <div class="bar-container">
-                        <div class="bar-fill ${item.colorClass}" style="width: ${widthPercent}%">
-                            ${formatCost(item.cost)}
-                        </div>
+                        <div class="bar-fill ${item.colorClass}" style="width: ${widthPercent}%"></div>
                     </div>
                 </div>
                 `;
